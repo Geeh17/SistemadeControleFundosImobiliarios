@@ -11,9 +11,10 @@ model Usuario {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   nome     String
-  googleId String?  
+  googleId String?  @unique // Torne googleId único
   Ativos   Ativo[]  
 }
+
 
 model Ativo {
   id           Int      @id @default(autoincrement())
