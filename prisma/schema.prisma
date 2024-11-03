@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  nome     String
+  googleId String?  
+  Ativos   Ativo[]  
+}
+
+model Ativo {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  tipo         String   
+  quantidade   Float
+  precoCompra  Float
+  usuarioId    Int
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+  transacoes   Transacao[]
+}
+
+model Transacao {
+  id         Int     @id @default(autoincrement())
+  tipo       String  // "compra", "venda", "dividendo"
+  quantidade Float
+  valor      Float
+  data       DateTime @default(now())
+  ativoId    Int
+  ativo      Ativo   @relation(fields: [ativoId], references: [id])
+}
