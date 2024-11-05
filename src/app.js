@@ -6,6 +6,7 @@ require('./utils/auth');
 const authRoutes = require('./routes/authRoutes');
 const ativosRoutes = require('./routes/ativosRoutes');
 const usuariosRoutes = require('./routes/usuariosRoutes'); 
+const transacoesRoutes = require('./routes/transacoesRoutes');
 
 const app = express();
 app.use(express.json());
@@ -22,5 +23,6 @@ app.use(passport.session());
 app.use('/auth', authRoutes);
 app.use('/ativos', ativosRoutes);
 app.use('/usuarios', usuariosRoutes); 
+app.use('/transacoes', transacoesRoutes);
 
 module.exports = app;

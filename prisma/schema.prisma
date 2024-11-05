@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Usuario {
-  id       Int      @id @default(autoincrement())
-  nome     String
-  email    String   @unique
-  senha    String?  
-  googleId String?  @unique
-  Ativos   Ativo[]  
+  id         Int         @id @default(autoincrement())
+  nome       String
+  email      String      @unique
+  senha      String?
+  googleId   String?     @unique
+  Ativos     Ativo[]
+  Transacoes Transacao[] 
 }
 
 
@@ -29,11 +30,14 @@ model Ativo {
 }
 
 model Transacao {
-  id         Int     @id @default(autoincrement())
-  tipo       String  // "compra", "venda", "dividendo"
-  quantidade Float
+  id         Int      @id @default(autoincrement())
+  tipo       String   // "compra", "venda", "dividendo"
+  quantidade Float?   
   valor      Float
   data       DateTime @default(now())
-  ativoId    Int
-  ativo      Ativo   @relation(fields: [ativoId], references: [id])
+  ativoId    Int?
+  ativo      Ativo?   @relation(fields: [ativoId], references: [id])
+  usuarioId  Int
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
 }
+

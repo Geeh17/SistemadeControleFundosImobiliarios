@@ -125,10 +125,59 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
    - **Parâmetros**:
      - `:id` - ID do ativo.
 
----
+## CRUD de Transações
+
+### 1. **Criar uma Nova Transação**
+   - **Método**: POST
+   - **URL**: `http://localhost:3000/transacoes`
+   - **Body**:
+     ```json
+     {
+       "tipo": "DEPOSITO",
+       "valor": 100.0,
+       "quantidade": 1,
+       "ativoId": 1
+     }
+     ```
+   - **Descrição**: Cria uma nova transação associada ao usuário autenticado. O tipo de transação pode ser "DEPOSITO", "RETIRADA", "COMPRA" ou "VENDA".
+   - **Observação**: `quantidade` e `ativoId` são opcionais para transações de "DEPOSITO" e "RETIRADA".
+
+### 2. **Listar Todas as Transações do Usuário**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/transacoes`
+   - **Descrição**: Retorna todas as transações associadas ao usuário autenticado.
+
+### 3. **Buscar uma Transação Específica**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/transacoes/:id`
+   - **Descrição**: Retorna os detalhes de uma transação específica associada ao usuário autenticado.
+   - **Parâmetros**:
+     - `:id` - ID da transação.
+
+### 4. **Atualizar uma Transação**
+   - **Método**: PUT
+   - **URL**: `http://localhost:3000/transacoes/:id`
+   - **Body**:
+     ```json
+     {
+       "tipo": "VENDA",
+       "valor": 150.0,
+       "quantidade": 2
+     }
+     ```
+   - **Descrição**: Atualiza os dados de uma transação específica associada ao usuário autenticado. O tipo de transação pode ser "DEPOSITO", "RETIRADA", "COMPRA" ou "VENDA".
+   - **Parâmetros**:
+     - `:id` - ID da transação.
+
+### 5. **Excluir uma Transação**
+   - **Método**: DELETE
+   - **URL**: `http://localhost:3000/transacoes/:id`
+   - **Descrição**: Exclui uma transação específica associada ao usuário autenticado.
+   - **Parâmetros**:
+     - `:id` - ID da transação.
 
 - **Autenticação**: Os endpoints requer um Bearer Token obtido através da autenticação com Google OAuth.
 
-- **Tecnologias**: Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
+- **Tecnologias**: Node Js, Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
 
 - **Banco de Dados**: Banco de dados MySQL.
