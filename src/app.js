@@ -4,7 +4,8 @@ const passport = require('passport');
 require('./utils/auth');
 
 const authRoutes = require('./routes/authRoutes');
-const ativosRoutes = require('./routes/ativosRoutes'); 
+const ativosRoutes = require('./routes/ativosRoutes');
+const usuariosRoutes = require('./routes/usuariosRoutes'); 
 
 const app = express();
 app.use(express.json());
@@ -18,7 +19,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/auth', authRoutes); // Rotas de autenticação
-app.use('/ativos', ativosRoutes); // Montando as rotas de ativos na URL /ativos
+app.use('/auth', authRoutes);
+app.use('/ativos', ativosRoutes);
+app.use('/usuarios', usuariosRoutes); 
 
 module.exports = app;
