@@ -1,64 +1,134 @@
 
 # Trabalho WebService
 
-Para conseguir o token http://localhost:3000/auth/google
+Para obter o token de autenticação: **[GET]** `http://localhost:3000/auth/google`
 
-# API de Controle de Ativos
-A API permite que os usuários autenticados gerenciem seus ativos financeiros, incluindo a criação, leitura, atualização e exclusão de ativos. A API utiliza autenticação com Google OAuth e Prisma para manipulação de dados.
+# API de Controle de Usuários e Ativos
 
-# Endpoints
-Autenticação
-GET /auth/google
-Redireciona para a autenticação com o Google.
+A API permite que os usuários autenticados gerenciem seus dados pessoais e seus ativos financeiros, incluindo a criação, leitura, atualização e exclusão de usuários e ativos. A API utiliza autenticação com Google OAuth e Prisma para manipulação de dados.
 
-GET /auth/google/callback
-Callback para autenticação do Google, que retorna um token de autenticação.
+## Endpoints de Autenticação
 
-# CRUD de Ativos
+### 1. **Autenticação com Google**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/auth/google`
+   - **Descrição**: Redireciona para a autenticação com o Google.
 
-1. Listar Todos os Ativos do Usuário
-Método: GET
-URL: http://localhost:3000/ativos
-Descrição: Retorna todos os ativos associados ao usuário autenticado.
+### 2. **Callback da Autenticação Google**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/auth/google/callback`
+   - **Descrição**: Endpoint de retorno da autenticação do Google, que gera um token de autenticação.
 
-2. Criar um Novo Ativo
-Método: POST
-URL: http://localhost:3000/ativos
-Body:
+---
 
-{
-  "nome": "Ativo Teste",
-  "tipo": "acao",
-  "quantidade": 6,
-  "preco": 50.0
-}
+## CRUD de Usuários
 
-3. Buscar um Ativo Específico
-Método: GET
-URL: http://localhost:3000/ativos/:id
-Descrição: Retorna os detalhes de um ativo específico associado ao usuário autenticado.
-Parâmetros:
-:id - ID do ativo.
+### 1. **Criar Usuário**
+   - **Método**: POST
+   - **URL**: `http://localhost:3000/usuarios`
+   - **Body**:
+     ```json
+     {
+       "nome": "Teste",
+       "email": "usuario15@teste.com.br",
+       "senha": "senha12356",
+       "googleId": "12345678901"
+     }
+     ```
+   - **Descrição**: Cria um novo usuário no sistema.
 
-4. Atualizar um Ativo
-Método: PUT
-URL: http://localhost:3000/ativos/:id
-Body:
-{
-  "nome": "Ativo Atualizado",
-  "tipo": "acao",
-  "quantidade": 10,
-  "preco": 60.0
-}
-Parâmetros:
-:id - ID do ativo.
+### 2. **Listar Todos os Usuários**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/usuarios`
+   - **Descrição**: Retorna uma lista de todos os usuários cadastrados (apenas para usuários autenticados).
 
-5. Excluir um Ativo
-Método: DELETE
-URL: http://localhost:3000/ativos/:id
-Exclui um ativo específico associado ao usuário autenticado.
-Parâmetros:
-:id - ID do ativo
+### 3. **Obter Usuário Específico**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/usuarios/:id`
+   - **Descrição**: Retorna os dados de um usuário específico.
+   - **Parâmetros**:
+     - `:id` - ID do usuário.
 
+### 4. **Atualizar Usuário**
+   - **Método**: PUT
+   - **URL**: `http://localhost:3000/usuarios/:id`
+   - **Body**:
+     ```json
+     {
+       "nome": "Usuário Atualizado",
+       "email": "usuario@atualizado.com",
+       "senha": "novaSenha123",
+       "googleId": "1234567890"
+     }
+     ```
+   - **Descrição**: Atualiza os dados de um usuário específico.
+   - **Parâmetros**:
+     - `:id` - ID do usuário.
 
+### 5. **Excluir Usuário**
+   - **Método**: DELETE
+   - **URL**: `http://localhost:3000/usuarios/:id`
+   - **Descrição**: Exclui um usuário específico.
+   - **Parâmetros**:
+     - `:id` - ID do usuário.
 
+---
+
+## CRUD de Ativos
+
+### 1. **Listar Todos os Ativos do Usuário**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/ativos`
+   - **Descrição**: Retorna todos os ativos associados ao usuário autenticado.
+
+### 2. **Criar um Novo Ativo**
+   - **Método**: POST
+   - **URL**: `http://localhost:3000/ativos`
+   - **Body**:
+     ```json
+     {
+       "nome": "Ativo Teste",
+       "tipo": "acao",
+       "quantidade": 6,
+       "preco": 50.0
+     }
+     ```
+   - **Descrição**: Cria um novo ativo financeiro associado ao usuário autenticado.
+
+### 3. **Buscar um Ativo Específico**
+   - **Método**: GET
+   - **URL**: `http://localhost:3000/ativos/:id`
+   - **Descrição**: Retorna os detalhes de um ativo específico associado ao usuário autenticado.
+   - **Parâmetros**:
+     - `:id` - ID do ativo.
+
+### 4. **Atualizar um Ativo**
+   - **Método**: PUT
+   - **URL**: `http://localhost:3000/ativos/:id`
+   - **Body**:
+     ```json
+     {
+       "nome": "Ativo Atualizado",
+       "tipo": "acao",
+       "quantidade": 10,
+       "preco": 60.0
+     }
+     ```
+   - **Descrição**: Atualiza os dados de um ativo específico associado ao usuário autenticado.
+   - **Parâmetros**:
+     - `:id` - ID do ativo.
+
+### 5. **Excluir um Ativo**
+   - **Método**: DELETE
+   - **URL**: `http://localhost:3000/ativos/:id`
+   - **Descrição**: Exclui um ativo específico associado ao usuário autenticado.
+   - **Parâmetros**:
+     - `:id` - ID do ativo.
+
+---
+
+- **Autenticação**: Os endpoints requer um Bearer Token obtido através da autenticação com Google OAuth.
+
+- **Tecnologias**: Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
+
+- **Banco de Dados**: Banco de dados MySQL.
