@@ -9,7 +9,6 @@ router.post('/', authMiddleware, async (req, res) => {
     const { tipo, valor, quantidade, ativoId } = req.body;
     const userId = req.user.id;
 
-    // Verificação condicional da quantidade: necessária apenas para certos tipos de transação
     if (!valor || valor <= 0 || !['DEPOSITO', 'RETIRADA', 'COMPRA', 'VENDA'].includes(tipo) ||
         ((tipo === 'COMPRA' || tipo === 'VENDA') && (!quantidade || quantidade <= 0))) {
         return res.status(400).json({ message: 'Dados de transação inválidos.' });
@@ -33,21 +32,51 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Endpoint para listar todas as transações do usuário autenticado
+// Endpoint para listar todas as transações do usuário autenticado com filtros e paginação
 router.get('/', authMiddleware, async (req, res) => {
     const userId = req.user.id;
+    const { tipo, dataInicio, dataFim, page = 1, limit = 10 } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const offset = (pageNumber - 1) * limitNumber;
 
     try {
+        const filters = { usuarioId: userId };
+
+        if (tipo) {
+            filters.tipo = tipo.toUpperCase();
+        }
+
+        if (dataInicio && dataFim) {
+            filters.data = {
+                gte: new Date(dataInicio),
+                lte: new Date(dataFim),
+            };
+        } else if (dataInicio) {
+            filters.data = { gte: new Date(dataInicio) };
+        } else if (dataFim) {
+            filters.data = { lte: new Date(dataFim) };
+        }
+
         const transacoes = await prisma.transacao.findMany({
-            where: {
-                usuarioId: userId,
-            },
-            include: {
-                ativo: true, // Inclui informações sobre o ativo relacionado
-            },
+            where: filters,
+            include: { ativo: true },
+            skip: offset,
+            take: limitNumber,
+            orderBy: { data: 'desc' },
         });
-        res.status(200).json({ transacoes });
+
+        const totalTransacoes = await prisma.transacao.count({ where: filters });
+
+        res.status(200).json({
+            transacoes,
+            total: totalTransacoes,
+            page: pageNumber,
+            totalPages: Math.ceil(totalTransacoes / limitNumber),
+        });
     } catch (error) {
+        console.error("Erro ao buscar transações com filtros:", error);
         res.status(500).json({ message: 'Erro ao buscar transações.', error });
     }
 });
@@ -59,10 +88,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
     try {
         const transacao = await prisma.transacao.findFirst({
-            where: {
-                id: Number(id),
-                usuarioId: userId,
-            },
+            where: { id: Number(id), usuarioId: userId },
         });
 
         if (!transacao) {
@@ -88,10 +114,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     try {
         const transacao = await prisma.transacao.updateMany({
-            where: {
-                id: Number(id),
-                usuarioId: userId,
-            },
+            where: { id: Number(id), usuarioId: userId },
             data: {
                 tipo,
                 valor: tipo === 'RETIRADA' ? -valor : valor,
@@ -117,10 +140,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
     try {
         const transacao = await prisma.transacao.deleteMany({
-            where: {
-                id: Number(id),
-                usuarioId: userId,
-            },
+            where: { id: Number(id), usuarioId: userId },
         });
 
         if (transacao.count === 0) {
