@@ -4,7 +4,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-//Criar um novo ativo (POST /ativos)
+// Criar um novo ativo (POST /ativos)
 router.post('/', authMiddleware, async (req, res) => {
   const { nome, tipo, quantidade, preco } = req.body;
   const userId = req.user.id;
@@ -37,7 +37,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-//Obter um ativo pelo ID (GET /ativos/:id)
+// Obter um ativo pelo ID (GET /ativos/:id)
 router.get('/:id', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
 
@@ -57,7 +57,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-//Atualizar um ativo existente (PUT /ativos/:id)
+// Atualizar um ativo existente (PUT /ativos/:id)
 router.put('/:id', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
   const { nome, tipo, quantidade, preco } = req.body;
@@ -83,7 +83,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-//Excluir um ativo pelo ID (DELETE /ativos/:id)
+// Excluir um ativo pelo ID (DELETE /ativos/:id)
 router.delete('/:id', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
 
@@ -104,6 +104,27 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Erro ao excluir ativo:", error);
     res.status(500).json({ message: "Erro ao excluir ativo" });
+  }
+});
+
+// Obter o preço atual de um ativo específico (GET /ativos/:id/preco)
+router.get('/:id/preco', authMiddleware, async (req, res) => {
+  const ativoId = parseInt(req.params.id, 10);
+
+  try {
+    const ativo = await prisma.ativo.findUnique({
+      where: { id: ativoId },
+      select: { nome: true, precoCompra: true }
+    });
+
+    if (!ativo || ativo.usuarioId !== req.user.id) {
+      return res.status(404).json({ message: 'Ativo não encontrado' });
+    }
+
+    res.json({ nome: ativo.nome, precoAtual: ativo.precoCompra });
+  } catch (error) {
+    console.error('Erro ao obter preço do ativo:', error);
+    res.status(500).json({ message: 'Erro ao obter preço do ativo' });
   }
 });
 
