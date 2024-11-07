@@ -181,3 +181,5 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
 - **Tecnologias**: Node Js, Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
 
 - **Banco de Dados**: Banco de dados MySQL.
+
+- **API Externa**: https://www.alphavantage.co/ (https://www.alphavantage.co/documentation/)

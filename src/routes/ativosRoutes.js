@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { obterPrecoAtivo } = require('../utils/precoService'); 
 
 // Criar um novo ativo (POST /ativos)
 router.post('/', authMiddleware, async (req, res) => {
@@ -107,21 +108,34 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Obter o preço atual de um ativo específico (GET /ativos/:id/preco)
+// Obter o preço atual de um ativo específico, tanto do banco interno quanto da API externa (GET /ativos/:id/preco)
 router.get('/:id/preco', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
 
   try {
     const ativo = await prisma.ativo.findUnique({
       where: { id: ativoId },
-      select: { nome: true, precoCompra: true }
+      select: { nome: true, precoCompra: true, usuarioId: true }
     });
 
     if (!ativo || ativo.usuarioId !== req.user.id) {
       return res.status(404).json({ message: 'Ativo não encontrado' });
     }
 
-    res.json({ nome: ativo.nome, precoAtual: ativo.precoCompra });
+    let precoAtual;
+    try {
+      precoAtual = await obterPrecoAtivo(ativo.nome);
+    } catch (error) {
+      console.error('Erro ao obter preço externo:', error);
+      return res.json({ nome: ativo.nome, precoBanco: ativo.precoCompra, message: 'Erro ao buscar preço externo, exibindo apenas o preço interno.' });
+    }
+
+    res.json({
+      nome: ativo.nome,
+      precoBanco: ativo.precoCompra,
+      precoAtual: precoAtual
+    });
+    
   } catch (error) {
     console.error('Erro ao obter preço do ativo:', error);
     res.status(500).json({ message: 'Erro ao obter preço do ativo' });
