@@ -5,6 +5,60 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { obterPrecoAtivo } = require('../utils/precoService'); 
 
+// Endpoint para calcular a rentabilidade mensal dos ativos (GET /ativos/rentabilidade-mensal)
+router.get('/rentabilidade-mensal', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const dataInicio = new Date();
+  dataInicio.setDate(1); 
+  const dataFim = new Date();
+
+  try {
+     const ativos = await prisma.ativo.findMany({
+          where: { usuarioId: userId },
+          include: {
+              transacoes: {
+                  where: {
+                      data: {
+                          gte: dataInicio,
+                          lte: dataFim
+                      }
+                  }
+              }
+          }
+      });
+
+      let rentabilidadeTotal = 0;
+      for (const ativo of ativos) {
+          let custoTotal = 0;
+          let quantidadeTotal = 0;
+          let dividendos = 0;
+          ativo.transacoes.forEach(transacao => {
+              if (transacao.tipo === 'COMPRA') {
+                  custoTotal += transacao.quantidade * transacao.valor;
+                  quantidadeTotal += transacao.quantidade;
+              } else if (transacao.tipo === 'VENDA') {
+                  custoTotal -= transacao.quantidade * transacao.valor;
+                  quantidadeTotal -= transacao.quantidade;
+              } else if (transacao.tipo === 'DIVIDENDO') {
+                  dividendos += transacao.valor;
+              }
+          });
+          const precoAtual = await obterPrecoAtivo(ativo.nome);
+          const valorAtual = precoAtual * quantidadeTotal;
+          const rentabilidade = (valorAtual + dividendos - custoTotal);
+          rentabilidadeTotal += rentabilidade;
+      }
+
+      res.status(200).json({
+          message: 'Rentabilidade mensal calculada com sucesso.',
+          rentabilidadeTotal
+      });
+  } catch (error) {
+      console.error('Erro ao calcular rentabilidade mensal:', error);
+      res.status(500).json({ message: 'Erro ao calcular rentabilidade mensal.', error });
+  }
+});
+
 // Criar um novo ativo (POST /ativos)
 router.post('/', authMiddleware, async (req, res) => {
   const { nome, tipo, quantidade, preco } = req.body;
@@ -41,7 +95,9 @@ router.get('/', authMiddleware, async (req, res) => {
 // Obter um ativo pelo ID (GET /ativos/:id)
 router.get('/:id', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
-
+  if (isNaN(ativoId)) {
+    return res.status(400).json({ message: 'ID inválido fornecido.' });
+  }
   try {
     const ativo = await prisma.ativo.findUnique({
       where: { id: ativoId },
@@ -50,7 +106,6 @@ router.get('/:id', authMiddleware, async (req, res) => {
     if (!ativo || ativo.usuarioId !== req.user.id) {
       return res.status(404).json({ message: 'Ativo não encontrado' });
     }
-
     res.json(ativo);
   } catch (error) {
     console.error("Erro ao buscar ativo:", error);
@@ -62,7 +117,6 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
   const ativoId = parseInt(req.params.id, 10);
   const { nome, tipo, quantidade, preco } = req.body;
-
   try {
     const ativoExistente = await prisma.ativo.findUnique({
       where: { id: ativoId },
