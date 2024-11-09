@@ -7,6 +7,14 @@ Para obter o token de autenticação: **[GET]** `http://localhost:3000/auth/goog
 
 A API permite que os usuários autenticados gerenciem seus dados pessoais e seus ativos financeiros, incluindo a criação, leitura, atualização e exclusão de usuários e ativos. A API utiliza autenticação com Google OAuth e Prisma para manipulação de dados.
 
+- **Autenticação**: Os endpoints requer um Bearer Token obtido através da autenticação com Google OAuth.
+
+- **Tecnologias**: Node Js, Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
+
+- **Banco de Dados**: Banco de dados MySQL.
+
+- **API Externa**: https://www.alphavantage.co/ (https://www.alphavantage.co/documentation/)
+
 ## Endpoints de Autenticação
 
 ### 1. **Autenticação com Google**
@@ -19,7 +27,6 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
    - **URL**: `http://localhost:3000/auth/google/callback`
    - **Descrição**: Endpoint de retorno da autenticação do Google, que gera um token de autenticação.
 
----
 
 ## CRUD de Usuários
 
@@ -71,8 +78,6 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
    - **Descrição**: Exclui um usuário específico.
    - **Parâmetros**:
      - `:id` - ID do usuário.
-
----
 
 ## CRUD de Ativos
 
@@ -176,10 +181,34 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
    - **Parâmetros**:
      - `:id` - ID da transação.
 
-- **Autenticação**: Os endpoints requer um Bearer Token obtido através da autenticação com Google OAuth.
+### Filtros e Pesquisa de Ativos
 
-- **Tecnologias**: Node Js, Prisma para gerenciar o banco de dados e o Google OAuth para autenticação.
+- **Método**: GET
+- **URL**: `http://localhost:3000/ativos`
+- **Query Params**:
+  - `tipo`: Filtra os ativos pelo tipo específico (ex.: "Ações", "Fundos Imobiliários").
+  - `nome`: Realiza uma pesquisa parcial pelo nome do ativo.
+  - `pagina`: Número da página para paginação.
+  - `limite`: Número de itens por página.
 
-- **Banco de Dados**: Banco de dados MySQL.
+- **Exemplo de Requisição**:
+  ```http
+  GET /ativos?tipo=Ações&nome=Petro&pagina=1&limite=10
+  ```
+  - **Descrição**: Retorna os ativos do usuário filtrados pelo tipo "Ações" e que contêm "Petro" no nome, limitando a resposta a 10 itens na primeira página.
 
-- **API Externa**: https://www.alphavantage.co/ (https://www.alphavantage.co/documentation/)
+### Filtros e Paginação de Transações
+
+- **Método**: GET
+- **URL**: `http://localhost:3000/transacoes`
+- **Query Params**:
+  - `tipo`: Filtra as transações pelo tipo (ex.: "COMPRA", "VENDA").
+  - `dataInicio` e `dataFim`: Filtram as transações realizadas dentro de um intervalo de datas.
+  - `pagina`: Número da página para paginação.
+  - `limite`: Número de itens por página.
+
+- **Exemplo de Requisição**:
+  ```http
+  GET /transacoes?tipo=COMPRA&dataInicio=2024-01-01&dataFim=2024-12-31&pagina=2&limite=5
+  ```
+  - **Descrição**: Retorna as transações de compra realizadas entre 1º de janeiro e 31 de dezembro de 2024, exibindo 5 resultados por página na segunda página.
