@@ -4,7 +4,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Endpoint para criar uma nova transação (depósito, retirada, compra, venda)
 router.post('/', authMiddleware, async (req, res) => {
     const { tipo, valor, quantidade, ativoId } = req.body;
     const userId = req.user.id;
@@ -32,7 +31,6 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Endpoint para listar todas as transações do usuário autenticado com filtros e paginação
 router.get('/', authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const { tipo, dataInicio, dataFim, page = 1, limit = 10 } = req.query;

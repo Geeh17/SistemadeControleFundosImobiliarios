@@ -1,6 +1,8 @@
 
 # Trabalho WebService
 
+node src/server.js 
+
 Para obter o token de autenticação: **[GET]** `http://localhost:3000/auth/google`
 
 # API de Controle de Usuários e Ativos
