@@ -214,3 +214,9 @@ A API permite que os usuários autenticados gerenciem seus dados pessoais e seus
   GET /transacoes?tipo=COMPRA&dataInicio=2024-01-01&dataFim=2024-12-31&pagina=2&limite=5
   ```
   - **Descrição**: Retorna as transações de compra realizadas entre 1º de janeiro e 31 de dezembro de 2024, exibindo 5 resultados por página na segunda página.
+  
+  
+## Autor
+
+Desenvolvido por **Geraldo Luiz**  
+🌐 https://portfolio-geeh.netlify.app
