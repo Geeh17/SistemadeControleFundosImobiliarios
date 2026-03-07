@@ -2,12 +2,18 @@ const axios = require('axios');
 
 async function obterPrecoAtivo(simbolo) {
     try {
+        const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+        
+        if (!apiKey) {
+            throw new Error('ALPHA_VANTAGE_API_KEY não configurada no arquivo .env');
+        }
+
         const response = await axios.get(`https://www.alphavantage.co/query`, {
             params: {
                 function: 'TIME_SERIES_INTRADAY',
                 symbol: simbolo,
                 interval: '5min',
-                apikey: 'V2LXU9X0NQ4N3K9P'
+                apikey: apiKey
             }
         });
         

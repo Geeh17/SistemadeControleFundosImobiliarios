@@ -1,5 +1,10 @@
 const jwt = require('jsonwebtoken');
-const SECRET_KEY = process.env.JWT_SECRET || "WebService";
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET não está definido nas variáveis de ambiente. Configure no arquivo .env');
+}
+
+const SECRET_KEY = process.env.JWT_SECRET;
 
 function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });

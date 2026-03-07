@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { createUserLimiter } = require('../middleware/rateLimiter');
+const bcrypt = require('bcryptjs');
+const prisma = require('../config/prisma');
 
 // 1. Criar um Novo Usuário (POST /usuarios)
-router.post('/', async (req, res) => {
+router.post('/', createUserLimiter, async (req, res) => {
   const { nome, email, senha, googleId } = req.body;
 
   if (!nome || !email || !senha) {
@@ -18,11 +19,14 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Email já está em uso.' });
     }
 
+    const senhaHash = await bcrypt.hash(senha, 10);
+
     const usuario = await prisma.usuario.create({
-      data: { nome, email, senha, googleId } // Incluindo googleId como opcional
+      data: { nome, email, senha: senhaHash, googleId }
     });
 
-    res.status(201).json({ message: 'Usuário criado com sucesso!', usuario });
+    const { senha: _, ...usuarioSemSenha } = usuario;
+    res.status(201).json({ message: 'Usuário criado com sucesso!', usuario: usuarioSemSenha });
   } catch (error) {
     console.error("Erro ao criar usuário:", error);
     res.status(500).json({ message: 'Erro ao criar usuário' });
@@ -32,7 +36,14 @@ router.post('/', async (req, res) => {
 // 2. Listar Todos os Usuários (GET /usuarios)
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const usuarios = await prisma.usuario.findMany();
+    const usuarios = await prisma.usuario.findMany({
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        googleId: true
+      }
+    });
     res.json(usuarios);
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
@@ -44,9 +55,19 @@ router.get('/', authMiddleware, async (req, res) => {
 router.get('/:id', authMiddleware, async (req, res) => {
   const usuarioId = parseInt(req.params.id, 10);
 
+  if (req.user.id !== usuarioId) {
+    return res.status(403).json({ message: 'Acesso negado: você só pode ver seus próprios dados.' });
+  }
+
   try {
     const usuario = await prisma.usuario.findUnique({
       where: { id: usuarioId },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        googleId: true
+      }
     });
 
     if (!usuario) {
@@ -65,6 +86,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
   const usuarioId = parseInt(req.params.id, 10);
   const { nome, email, senha, googleId } = req.body;
 
+  if (req.user.id !== usuarioId) {
+    return res.status(403).json({ message: 'Acesso negado: você só pode atualizar seus próprios dados.' });
+  }
+
   try {
     const usuarioExistente = await prisma.usuario.findUnique({
       where: { id: usuarioId },
@@ -74,9 +99,21 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
+    const dadosAtualizacao = { nome, email, googleId };
+    
+    if (senha) {
+      dadosAtualizacao.senha = await bcrypt.hash(senha, 10);
+    }
+
     const usuarioAtualizado = await prisma.usuario.update({
       where: { id: usuarioId },
-      data: { nome, email, senha, googleId } // Atualizando com googleId como opcional
+      data: dadosAtualizacao,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        googleId: true
+      }
     });
 
     res.json({ message: 'Usuário atualizado com sucesso!', usuarioAtualizado });
@@ -89,6 +126,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // 5. Excluir um Usuário (DELETE /usuarios/:id)
 router.delete('/:id', authMiddleware, async (req, res) => {
   const usuarioId = parseInt(req.params.id, 10);
+
+  if (req.user.id !== usuarioId) {
+    return res.status(403).json({ message: 'Acesso negado: você só pode excluir sua própria conta.' });
+  }
 
   try {
     const usuario = await prisma.usuario.findUnique({

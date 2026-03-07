@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 require('./utils/auth');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const authRoutes = require('./routes/authRoutes');
 const ativosRoutes = require('./routes/ativosRoutes');
@@ -19,6 +20,8 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(apiLimiter);
 
 app.use('/auth', authRoutes);
 app.use('/ativos', ativosRoutes);

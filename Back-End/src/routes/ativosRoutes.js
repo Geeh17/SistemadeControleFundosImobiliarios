@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/prisma');
 const { obterPrecoAtivo } = require('../utils/precoService'); 
 
 // Endpoint para calcular a rentabilidade mensal dos ativos (GET /ativos/rentabilidade-mensal)
@@ -28,7 +27,11 @@ router.get('/rentabilidade-mensal', authMiddleware, async (req, res) => {
       });
 
       let rentabilidadeTotal = 0;
-      for (const ativo of ativos) {
+      
+      const precosPromises = ativos.map(ativo => obterPrecoAtivo(ativo.nome));
+      const precos = await Promise.all(precosPromises);
+      
+      ativos.forEach((ativo, index) => {
           let custoTotal = 0;
           let quantidadeTotal = 0;
           let dividendos = 0;
@@ -43,11 +46,11 @@ router.get('/rentabilidade-mensal', authMiddleware, async (req, res) => {
                   dividendos += transacao.valor;
               }
           });
-          const precoAtual = await obterPrecoAtivo(ativo.nome);
+          const precoAtual = precos[index];
           const valorAtual = precoAtual * quantidadeTotal;
           const rentabilidade = (valorAtual + dividendos - custoTotal);
           rentabilidadeTotal += rentabilidade;
-      }
+      });
 
       res.status(200).json({
           message: 'Rentabilidade mensal calculada com sucesso.',
